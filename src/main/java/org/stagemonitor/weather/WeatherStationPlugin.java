@@ -8,8 +8,6 @@ import org.stagemonitor.core.Stagemonitor;
 import org.stagemonitor.core.StagemonitorPlugin;
 import org.stagemonitor.core.configuration.Configuration;
 import org.stagemonitor.core.configuration.ConfigurationOption;
-import org.stagemonitor.core.configuration.ConfigurationSource;
-import org.stagemonitor.core.configuration.SimpleSource;
 import org.stagemonitor.core.rest.RestClient;
 
 import java.net.InetAddress;
@@ -24,48 +22,63 @@ public class WeatherStationPlugin implements StagemonitorPlugin {
 
 	private static ScheduledExecutorService actionListenerMock = Executors.newScheduledThreadPool(1);
 
-	private static double temp;
+	private static double temp = 21.0;
+	private static double humidity = 60;
+	private static double pressure = 1000;
+	private static double lumen = 1000;
 
 	@Override
 	public void initializePlugin(MetricRegistry metricRegistry, Configuration configuration) throws Exception {
 		RestClient.sendGrafanaDashboardAsync(configuration.getConfig(CorePlugin.class).getElasticsearchUrl(), "Weather Station.json");
 
 		metricRegistry.register("weather.temp", (Gauge<Double>) () -> temp);
+		metricRegistry.register("weather.humidity", (Gauge<Double>) () -> humidity);
+		metricRegistry.register("weather.pressure", (Gauge<Double>) () -> pressure);
+		metricRegistry.register("weather.lumen", (Gauge<Double>) () -> lumen);
 	}
 
 	@Override
 	public List<ConfigurationOption<?>> getConfigurationOptions() {
 		return Collections.emptyList();
-
 	}
 
 	public static void main(String[] args)throws Exception {
-		actionListenerMock.schedule(() -> { temp = Math.random() * 100; }, 1, TimeUnit.SECONDS);
-		Stagemonitor.startMonitoring(getMeasurementSession(), getConfiguration(args));
+		actionListenerMock.scheduleWithFixedDelay(() -> { temp += (Math.random() -0.5); }, 0, 1, TimeUnit.SECONDS);
+		actionListenerMock.scheduleWithFixedDelay(() -> { humidity += Math.min(100, Math.random() - 0.5); }, 0, 1, TimeUnit.SECONDS);
+		actionListenerMock.scheduleWithFixedDelay(() -> { pressure += (Math.random() -0.5); }, 0, 1, TimeUnit.SECONDS);
+		actionListenerMock.scheduleWithFixedDelay(() -> { lumen += (Math.random() - 0.5); }, 0, 1, TimeUnit.SECONDS);
+
+		final String instance = getInstance(args);
+		System.out.println(instance);
+		Stagemonitor.startMonitoring(getMeasurementSession(instance));
 
 		while (!Thread.currentThread().isInterrupted()) {
 			Thread.sleep(100);
 		}
 	}
 
-	static MeasurementSession getMeasurementSession() {
-		final CorePlugin corePlugin = Stagemonitor.getConfiguration(CorePlugin.class);
-		String applicationName = corePlugin.getApplicationName() != null ? corePlugin.getApplicationName() : "Weather Station";
-		String instanceName = corePlugin.getInstanceName() != null ? corePlugin.getInstanceName() : "host";
-		return new MeasurementSession(applicationName, getHostName(), instanceName);
+	/**
+	 * The instance could be the location the weather station is placed at. E.g. living room, bedroom, ...
+	 *
+	 * The instance name is extracted from the program arguments
+	 *
+	 * @param args the program arguments
+	 * @return the instance ("Weather Station" per default)
+	 */
+	private static String getInstance(String[] args) {
+		final String instance;
+		if (args.length > 0) {
+			instance = args[0];
+		} else {
+			instance = "Weather Station";
+		} return instance;
 	}
 
-	static ConfigurationSource getConfiguration(String[] args) {
-		final SimpleSource source = new SimpleSource("Process Arguments");
-		for (String arg : args) {
-			if (!arg.matches("(.+)=(.+)")) {
-				throw new IllegalArgumentException("Illegal argument '" + arg +
-						"'. Arguments must be in form '<config-key>=<config-value>'");
-			}
-			final String[] split = arg.split("=");
-			source.add(split[0], split[1]);
-		}
-		return source;
+	static MeasurementSession getMeasurementSession(String instance) {
+		final CorePlugin corePlugin = Stagemonitor.getConfiguration(CorePlugin.class);
+		String applicationName = corePlugin.getApplicationName() != null ? corePlugin.getApplicationName() : "Weather Station";
+		String instanceName = corePlugin.getInstanceName() != null ? corePlugin.getInstanceName() : instance;
+		return new MeasurementSession(applicationName, getHostName(), instanceName);
 	}
 
 	static String getHostName() {

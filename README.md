@@ -1,0 +1,1 @@
+![stagemonitor weather station](https://cloud.githubusercontent.com/assets/2163464/4752892/416b3cfc-5ab1-11e4-8705-15fc7b9bb858.PNG)

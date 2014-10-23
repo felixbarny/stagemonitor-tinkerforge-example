@@ -7,57 +7,23 @@
 					"type": "filter",
 					"name": "application",
 					"query": "stagemonitor.*",
-					"includeAll": false,
-					"options": [
-						{
-							"text": "os",
-							"value": "os"
-						}
-					],
-					"current": {
-						"text": "os",
-						"value": "os"
-					}
+					"includeAll": false
 				},
 				{
 					"type": "filter",
 					"name": "instance",
 					"query": "stagemonitor.[[application]].*",
-					"includeAll": true,
-					"options": [
-						{
-							"text": "All",
-							"value": "{host}"
-						},
-						{
-							"text": "host",
-							"value": "host"
-						}
-					],
-					"current": {
-						"text": "All",
-						"value": "{host}"
-					}
+					"includeAll": true
 				},
 				{
 					"type": "filter",
 					"name": "host",
 					"query": "stagemonitor.[[application]].[[instance]].*",
-					"includeAll": true,
-					"options": [
-						{
-							"text": "All",
-							"value": "*"
-						}
-					],
-					"current": {
-						"text": "All",
-						"value": "*"
-					}
+					"includeAll": true
 				}
 			],
 			"time": {
-				"from": "now-6h",
+				"from": "now-1h",
 				"to": "now"
 			}
 		}
@@ -69,7 +35,262 @@
 			"editable": true,
 			"collapse": false,
 			"collapsable": true,
-			"panels": [],
+			"panels": [
+				{
+					"span": 6,
+					"editable": true,
+					"type": "graph",
+					"datasource": null,
+					"renderer": "flot",
+					"x-axis": true,
+					"y-axis": true,
+					"scale": 1,
+					"y_formats": [
+						"short",
+						"short"
+					],
+					"grid": {
+						"leftMax": null,
+						"rightMax": null,
+						"leftMin": null,
+						"rightMin": null,
+						"threshold1": null,
+						"threshold2": null,
+						"threshold1Color": "rgba(216, 200, 27, 0.27)",
+						"threshold2Color": "rgba(234, 112, 112, 0.22)"
+					},
+					"annotate": {
+						"enable": false
+					},
+					"resolution": 100,
+					"lines": true,
+					"fill": 1,
+					"linewidth": 2,
+					"points": false,
+					"pointradius": 5,
+					"bars": false,
+					"stack": false,
+					"legend": {
+						"show": true,
+						"values": false,
+						"min": false,
+						"max": false,
+						"current": false,
+						"total": false,
+						"avg": false
+					},
+					"percentage": false,
+					"zerofill": true,
+					"nullPointMode": "connected",
+					"steppedLine": false,
+					"tooltip": {
+						"value_type": "cumulative",
+						"query_as_alias": true
+					},
+					"targets": [
+						{
+							"target": "groupByNode(stagemonitor.[[application]].[[instance]].[[host]].weather.temp,2,'sum')"
+						}
+					],
+					"aliasColors": {},
+					"aliasYAxis": {},
+					"title": "Temperature",
+					"leftYAxisLabel": "°C"
+				},
+				{
+					"span": 6,
+					"editable": true,
+					"type": "graph",
+					"datasource": null,
+					"renderer": "flot",
+					"x-axis": true,
+					"y-axis": true,
+					"scale": 1,
+					"y_formats": [
+						"short",
+						"short"
+					],
+					"grid": {
+						"leftMax": 100,
+						"rightMax": null,
+						"leftMin": 0,
+						"rightMin": null,
+						"threshold1": null,
+						"threshold2": null,
+						"threshold1Color": "rgba(216, 200, 27, 0.27)",
+						"threshold2Color": "rgba(234, 112, 112, 0.22)"
+					},
+					"annotate": {
+						"enable": false
+					},
+					"resolution": 100,
+					"lines": true,
+					"fill": 1,
+					"linewidth": 2,
+					"points": false,
+					"pointradius": 5,
+					"bars": false,
+					"stack": false,
+					"legend": {
+						"show": true,
+						"values": false,
+						"min": false,
+						"max": false,
+						"current": false,
+						"total": false,
+						"avg": false
+					},
+					"percentage": false,
+					"zerofill": true,
+					"nullPointMode": "connected",
+					"steppedLine": false,
+					"tooltip": {
+						"value_type": "individual",
+						"query_as_alias": true
+					},
+					"targets": [
+						{
+							"target": "groupByNode(stagemonitor.[[application]].[[instance]].[[host]].weather.humidity,2,'sum')"
+						}
+					],
+					"aliasColors": {},
+					"aliasYAxis": {},
+					"title": "Humidity",
+					"leftYAxisLabel": "%"
+				}
+			],
+			"notice": false
+		},
+		{
+			"title": "New row",
+			"height": "300px",
+			"editable": true,
+			"collapse": false,
+			"collapsable": true,
+			"panels": [
+				{
+					"span": 6,
+					"editable": true,
+					"type": "graph",
+					"datasource": null,
+					"renderer": "flot",
+					"x-axis": true,
+					"y-axis": true,
+					"scale": 1,
+					"y_formats": [
+						"none",
+						"short"
+					],
+					"grid": {
+						"leftMax": null,
+						"rightMax": null,
+						"leftMin": 0,
+						"rightMin": null,
+						"threshold1": null,
+						"threshold2": null,
+						"threshold1Color": "rgba(216, 200, 27, 0.27)",
+						"threshold2Color": "rgba(234, 112, 112, 0.22)"
+					},
+					"annotate": {
+						"enable": false
+					},
+					"resolution": 100,
+					"lines": true,
+					"fill": 1,
+					"linewidth": 2,
+					"points": false,
+					"pointradius": 5,
+					"bars": false,
+					"stack": false,
+					"legend": {
+						"show": true,
+						"values": false,
+						"min": false,
+						"max": false,
+						"current": false,
+						"total": false,
+						"avg": false
+					},
+					"percentage": false,
+					"zerofill": true,
+					"nullPointMode": "connected",
+					"steppedLine": false,
+					"tooltip": {
+						"value_type": "individual",
+						"query_as_alias": true
+					},
+					"targets": [
+						{
+							"target": "groupByNode(stagemonitor.[[application]].[[instance]].[[host]].weather.pressure,2,'sum')"
+						}
+					],
+					"aliasColors": {},
+					"aliasYAxis": {},
+					"title": "Pressure",
+					"leftYAxisLabel": "hPa"
+				},
+				{
+					"span": 6,
+					"editable": true,
+					"type": "graph",
+					"datasource": null,
+					"renderer": "flot",
+					"x-axis": true,
+					"y-axis": true,
+					"scale": 1,
+					"y_formats": [
+						"none",
+						"short"
+					],
+					"grid": {
+						"leftMax": null,
+						"rightMax": null,
+						"leftMin": 0,
+						"rightMin": null,
+						"threshold1": null,
+						"threshold2": null,
+						"threshold1Color": "rgba(216, 200, 27, 0.27)",
+						"threshold2Color": "rgba(234, 112, 112, 0.22)"
+					},
+					"annotate": {
+						"enable": false
+					},
+					"resolution": 100,
+					"lines": true,
+					"fill": 1,
+					"linewidth": 2,
+					"points": false,
+					"pointradius": 5,
+					"bars": false,
+					"stack": false,
+					"legend": {
+						"show": true,
+						"values": false,
+						"min": false,
+						"max": false,
+						"current": false,
+						"total": false,
+						"avg": false
+					},
+					"percentage": false,
+					"zerofill": true,
+					"nullPointMode": "connected",
+					"steppedLine": false,
+					"tooltip": {
+						"value_type": "individual",
+						"query_as_alias": true
+					},
+					"targets": [
+						{
+							"target": "groupByNode(stagemonitor.[[application]].[[instance]].[[host]].weather.lumen,2,'sum')"
+						}
+					],
+					"aliasColors": {},
+					"aliasYAxis": {},
+					"title": "Lumen",
+					"leftYAxisLabel": "lumen"
+				}
+			],
 			"notice": false
 		}
 	],
