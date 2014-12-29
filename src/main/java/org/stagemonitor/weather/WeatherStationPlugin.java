@@ -8,10 +8,8 @@ import org.stagemonitor.core.Stagemonitor;
 import org.stagemonitor.core.StagemonitorPlugin;
 import org.stagemonitor.core.configuration.Configuration;
 import org.stagemonitor.core.configuration.ConfigurationOption;
-import org.stagemonitor.core.rest.RestClient;
+import org.stagemonitor.core.elasticsearch.ElasticsearchClient;
 
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -29,7 +27,7 @@ public class WeatherStationPlugin implements StagemonitorPlugin {
 
 	@Override
 	public void initializePlugin(MetricRegistry metricRegistry, Configuration configuration) throws Exception {
-		RestClient.sendGrafanaDashboardAsync(configuration.getConfig(CorePlugin.class).getElasticsearchUrl(), "Weather Station.json");
+		ElasticsearchClient.sendGrafanaDashboardAsync("Weather Station.json");
 
 		metricRegistry.register("weather.temp", (Gauge<Double>) () -> temp);
 		metricRegistry.register("weather.humidity", (Gauge<Double>) () -> humidity);
@@ -78,27 +76,7 @@ public class WeatherStationPlugin implements StagemonitorPlugin {
 		final CorePlugin corePlugin = Stagemonitor.getConfiguration(CorePlugin.class);
 		String applicationName = corePlugin.getApplicationName() != null ? corePlugin.getApplicationName() : "Weather Station";
 		String instanceName = corePlugin.getInstanceName() != null ? corePlugin.getInstanceName() : instance;
-		return new MeasurementSession(applicationName, getHostName(), instanceName);
+		return new MeasurementSession(applicationName, MeasurementSession.getNameOfLocalHost(), instanceName);
 	}
 
-	static String getHostName() {
-		try {
-			return InetAddress.getLocalHost().getHostName();
-		} catch (UnknownHostException e) {
-			return getHostNameFromEnv();
-		}
-	}
-
-	static String getHostNameFromEnv() {
-		// try environment properties.
-		String host = System.getenv("COMPUTERNAME");
-		if (host != null) {
-			return host;
-		}
-		host = System.getenv("HOSTNAME");
-		if (host != null) {
-			return host;
-		}
-		return null;
-	}
 }

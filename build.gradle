@@ -13,8 +13,8 @@ compileJava {
 }
 
 dependencies {
-	compile 'org.stagemonitor:stagemonitor-core:0.9.1'
-	compile 'org.stagemonitor:stagemonitor-os:0.9.1'
+	compile 'org.stagemonitor:stagemonitor-core:0.10.0'
+	compile 'org.stagemonitor:stagemonitor-os:0.10.0'
 	compile 'org.slf4j:slf4j-simple:1.7.7'
 }
 
