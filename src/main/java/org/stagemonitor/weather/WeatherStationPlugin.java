@@ -1,5 +1,9 @@
 package org.stagemonitor.weather;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import org.stagemonitor.core.CorePlugin;
@@ -7,16 +11,9 @@ import org.stagemonitor.core.MeasurementSession;
 import org.stagemonitor.core.Stagemonitor;
 import org.stagemonitor.core.StagemonitorPlugin;
 import org.stagemonitor.core.configuration.Configuration;
-import org.stagemonitor.core.configuration.ConfigurationOption;
 import org.stagemonitor.core.elasticsearch.ElasticsearchClient;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
-public class WeatherStationPlugin implements StagemonitorPlugin {
+public class WeatherStationPlugin extends StagemonitorPlugin {
 
 	private static ScheduledExecutorService actionListenerMock = Executors.newScheduledThreadPool(1);
 
@@ -33,11 +30,6 @@ public class WeatherStationPlugin implements StagemonitorPlugin {
 		metricRegistry.register("weather.humidity", (Gauge<Double>) () -> humidity);
 		metricRegistry.register("weather.pressure", (Gauge<Double>) () -> pressure);
 		metricRegistry.register("weather.lumen", (Gauge<Double>) () -> lumen);
-	}
-
-	@Override
-	public List<ConfigurationOption<?>> getConfigurationOptions() {
-		return Collections.emptyList();
 	}
 
 	public static void main(String[] args)throws Exception {
