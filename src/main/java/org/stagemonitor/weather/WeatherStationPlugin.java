@@ -41,10 +41,6 @@ public class WeatherStationPlugin extends StagemonitorPlugin {
 		final String instance = getInstance(args);
 		System.out.println(instance);
 		Stagemonitor.startMonitoring(getMeasurementSession(instance));
-
-		while (!Thread.currentThread().isInterrupted()) {
-			Thread.sleep(100);
-		}
 	}
 
 	/**
