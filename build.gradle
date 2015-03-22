@@ -16,5 +16,6 @@ dependencies {
 	compile 'org.stagemonitor:stagemonitor-core:0.11.0'
 	compile 'org.stagemonitor:stagemonitor-os:0.11.0'
 	compile 'org.slf4j:slf4j-simple:1.7.7'
+	compile 'com.tinkerforge:tinkerforge:2.1.4'
 }
 

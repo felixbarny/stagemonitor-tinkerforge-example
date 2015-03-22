@@ -1,46 +1,113 @@
 package org.stagemonitor.weather;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
+import com.tinkerforge.BrickletAmbientLight;
+import com.tinkerforge.BrickletBarometer;
+import com.tinkerforge.BrickletHumidity;
+import com.tinkerforge.BrickletTemperature;
+import com.tinkerforge.IPConnection;
+import com.tinkerforge.NotConnectedException;
 import org.stagemonitor.core.CorePlugin;
 import org.stagemonitor.core.MeasurementSession;
 import org.stagemonitor.core.Stagemonitor;
 import org.stagemonitor.core.StagemonitorPlugin;
 import org.stagemonitor.core.configuration.Configuration;
 import org.stagemonitor.core.elasticsearch.ElasticsearchClient;
+import org.stagemonitor.weather.mock.MockBrickletAmbientLight;
+import org.stagemonitor.weather.mock.MockBrickletBarometer;
+import org.stagemonitor.weather.mock.MockBrickletHumidity;
+import org.stagemonitor.weather.mock.MockBrickletTemperature;
 
 public class WeatherStationPlugin extends StagemonitorPlugin {
 
-	private static ScheduledExecutorService actionListenerMock = Executors.newScheduledThreadPool(1);
+	private static final String HOST = "localhost";
+	private static final int PORT = 4223;
+	private static final String UID = "XYZ";
 
-	private static double temp = 21.0;
-	private static double humidity = 60;
-	private static double pressure = 1000;
-	private static double lumen = 1000;
+	private BrickletTemperature brickletTemperature;
+	private BrickletHumidity brickletHumidity;
+	private BrickletBarometer brickletBarometer;
+	private BrickletAmbientLight brickletAmbientLight;
+	private IPConnection ipcon;
 
 	@Override
 	public void initializePlugin(MetricRegistry metricRegistry, Configuration configuration) throws Exception {
+		ipcon = new IPConnection();
+//		ipcon.connect(HOST, PORT);
+		brickletTemperature = new MockBrickletTemperature(UID, ipcon);
+		brickletHumidity = new MockBrickletHumidity(UID, ipcon);
+		brickletBarometer = new MockBrickletBarometer(UID, ipcon);
+		brickletAmbientLight = new MockBrickletAmbientLight(UID, ipcon);
+
 		ElasticsearchClient.sendGrafanaDashboardAsync("Weather Station.json");
 
-		metricRegistry.register("weather.temp", (Gauge<Double>) () -> temp);
-		metricRegistry.register("weather.humidity", (Gauge<Double>) () -> humidity);
-		metricRegistry.register("weather.pressure", (Gauge<Double>) () -> pressure);
-		metricRegistry.register("weather.lumen", (Gauge<Double>) () -> lumen);
+		metricRegistry.register("weather.temp", (Gauge<Double>) this::getTemp);
+		metricRegistry.register("weather.humidity", (Gauge<Double>) this::getHumidity);
+		metricRegistry.register("weather.mbar", (Gauge<Double>) this::getMbar);
+		metricRegistry.register("weather.lux", (Gauge<Double>) this::getLux);
+
+	}
+
+	@Override
+	public void onShutDown() {
+		try {
+			if (ipcon != null) {
+				ipcon.disconnect();
+			}
+		} catch (NotConnectedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	public double getTemp() {
+		try {
+			return brickletTemperature.getTemperature() / 100.0;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Double.NaN;
+		}
+	}
+
+	public double getHumidity() {
+		try {
+			return brickletHumidity.getHumidity() / 10.0;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Double.NaN;
+		}
+	}
+
+	public double getMbar() {
+		try {
+			return brickletBarometer.getAirPressure() / 1000.0;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Double.NaN;
+		}
+	}
+
+	public double getLux() {
+		try {
+			return brickletAmbientLight.getIlluminance() / 10.0;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return Double.NaN;
+		}
 	}
 
 	public static void main(String[] args)throws Exception {
-		actionListenerMock.scheduleWithFixedDelay(() -> { temp += (Math.random() -0.5); }, 0, 1, TimeUnit.SECONDS);
-		actionListenerMock.scheduleWithFixedDelay(() -> { humidity += Math.min(100, Math.random() - 0.5); }, 0, 1, TimeUnit.SECONDS);
-		actionListenerMock.scheduleWithFixedDelay(() -> { pressure += (Math.random() -0.5); }, 0, 1, TimeUnit.SECONDS);
-		actionListenerMock.scheduleWithFixedDelay(() -> { lumen += (Math.random() - 0.5); }, 0, 1, TimeUnit.SECONDS);
+		Stagemonitor.startMonitoring(getMeasurementSession(args));
+		System.out.println("Press key to exit"); System.in.read();
+		Stagemonitor.shutDown();
+	}
 
-		final String instance = getInstance(args);
-		System.out.println(instance);
-		Stagemonitor.startMonitoring(getMeasurementSession(instance));
+	static MeasurementSession getMeasurementSession(String[] args) {
+		final CorePlugin corePlugin = Stagemonitor.getConfiguration(CorePlugin.class);
+		String applicationName = corePlugin.getApplicationName() != null ? corePlugin.getApplicationName() : "Weather Station";
+		String instanceName = corePlugin.getInstanceName() != null ? corePlugin.getInstanceName() : getInstance(args);
+		System.out.println(instanceName);
+		return new MeasurementSession(applicationName, MeasurementSession.getNameOfLocalHost(), instanceName);
 	}
 
 	/**
@@ -52,19 +119,10 @@ public class WeatherStationPlugin extends StagemonitorPlugin {
 	 * @return the instance ("Weather Station" per default)
 	 */
 	private static String getInstance(String[] args) {
-		final String instance;
 		if (args.length > 0) {
-			instance = args[0];
-		} else {
-			instance = "Weather Station";
-		} return instance;
-	}
-
-	static MeasurementSession getMeasurementSession(String instance) {
-		final CorePlugin corePlugin = Stagemonitor.getConfiguration(CorePlugin.class);
-		String applicationName = corePlugin.getApplicationName() != null ? corePlugin.getApplicationName() : "Weather Station";
-		String instanceName = corePlugin.getInstanceName() != null ? corePlugin.getInstanceName() : instance;
-		return new MeasurementSession(applicationName, MeasurementSession.getNameOfLocalHost(), instanceName);
+			return args[0];
+		}
+		return "Weather Station";
 	}
 
 }

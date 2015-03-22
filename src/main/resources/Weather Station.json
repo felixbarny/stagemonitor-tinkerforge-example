@@ -222,13 +222,13 @@
 					},
 					"targets": [
 						{
-							"target": "groupByNode(stagemonitor.[[application]].[[instance]].[[host]].weather.pressure,2,'sum')"
+							"target": "groupByNode(stagemonitor.[[application]].[[instance]].[[host]].weather.mbar,2,'sum')"
 						}
 					],
 					"aliasColors": {},
 					"aliasYAxis": {},
-					"title": "Pressure",
-					"leftYAxisLabel": "hPa"
+					"title": "Air Pressure",
+					"leftYAxisLabel": "mbar"
 				},
 				{
 					"span": 6,
@@ -283,13 +283,13 @@
 					},
 					"targets": [
 						{
-							"target": "groupByNode(stagemonitor.[[application]].[[instance]].[[host]].weather.lumen,2,'sum')"
+							"target": "groupByNode(stagemonitor.[[application]].[[instance]].[[host]].weather.lux,2,'sum')"
 						}
 					],
 					"aliasColors": {},
 					"aliasYAxis": {},
-					"title": "Lumen",
-					"leftYAxisLabel": "lumen"
+					"title": "Illuminance",
+					"leftYAxisLabel": "lux"
 				}
 			],
 			"notice": false
@@ -358,10 +358,9 @@
 		"load_local": false,
 		"hide": false
 	},
-	"refresh": "1m",
+	"refresh": "5s",
 	"tags": [
-		"cpu",
-		"os"
+		"weather"
 	],
 	"timezone": "browser"
 }
